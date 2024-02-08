@@ -5,4 +5,6 @@
     <string name="button_save_text">Save</string>
     <string name="button_load">Load</string>
     <string name="update_title_button">Update title</string>
+    <string name="delete_description">Delete description</string>
+    <string name="delete_note">Delete note</string>
 </resources>

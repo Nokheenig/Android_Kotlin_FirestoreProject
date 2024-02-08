@@ -34,6 +34,18 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/update_title_button"/>
+    
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/button_delete_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/delete_description"/>
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/button_delete_note"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/delete_note"/>
 
     <TextView android:id="@+id/text_view_data"
         android:layout_width="wrap_content"

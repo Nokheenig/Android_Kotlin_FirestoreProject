@@ -7,6 +7,7 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.SetOptions
@@ -20,6 +21,8 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var loadButton: Button
     private lateinit var updateTitleButton: Button
+    private lateinit var deleteDescriptionButton: Button
+    private lateinit var deleteNoteButton: Button
     private lateinit var textViewData: TextView
 
     private val KEY_TITLE = "title"
@@ -36,6 +39,15 @@ class MainActivity : AppCompatActivity() {
         textViewData = findViewById(R.id.text_view_data)
         loadButton = findViewById(R.id.load_button)
         updateTitleButton = findViewById(R.id.button_update_title)
+        deleteDescriptionButton = findViewById(R.id.button_delete_description)
+        deleteNoteButton = findViewById(R.id.button_delete_note)
+
+        deleteDescriptionButton.setOnClickListener {
+            deleteDescription()
+        }
+        deleteNoteButton.setOnClickListener {
+            deleteNote()
+        }
 
         updateTitleButton.setOnClickListener{
             updateTitle()
@@ -64,6 +76,7 @@ class MainActivity : AppCompatActivity() {
 
                     textViewData.text = "Title: $title\nDescription: $description"
                 } else {
+                    textViewData.text = ""
                     Toast.makeText(this@MainActivity, "The document doesn't exist", Toast.LENGTH_SHORT).show()
                 }
             }
@@ -112,5 +125,15 @@ class MainActivity : AppCompatActivity() {
         note[KEY_TITLE] = title
 
         docRef.set(note, SetOptions.merge())
+    }
+
+    private fun deleteDescription() {
+        val note = mutableMapOf<String, Any>()
+        note[KEY_DESCRIPTION] = FieldValue.delete() // Equivalent to: note.put(KEY_DESCRIPTION, FieldValue.delete())
+        docRef.update(note)
+    }
+
+    private fun deleteNote() {
+        docRef.delete()
     }
 }
