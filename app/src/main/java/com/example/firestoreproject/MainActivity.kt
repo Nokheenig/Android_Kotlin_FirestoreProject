@@ -8,6 +8,7 @@ import android.widget.TextView
 import android.widget.Toast
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 
 class MainActivity : AppCompatActivity() {
     private lateinit var editTextTitle: EditText
@@ -39,6 +40,26 @@ class MainActivity : AppCompatActivity() {
 
         saveButton.setOnClickListener {
             save()
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+
+        docRef.addSnapshotListener(this) { document, error ->
+            error?.let {
+                return@addSnapshotListener
+            }
+            document?.let {
+                if (it.exists()) {
+                    val title = it.getString((KEY_TITLE))
+                    val description = it.getString(KEY_DESCRIPTION)
+
+                    textViewData.text = "Title: $title\nDescription: $description"
+                } else {
+                    Toast.makeText(this@MainActivity, "The document doesn't exist", Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 
