@@ -4,4 +4,5 @@
     <string name="edit_text_hint_description">Description</string>
     <string name="button_save_text">Save</string>
     <string name="button_load">Load</string>
+    <string name="update_title_button">Update title</string>
 </resources>

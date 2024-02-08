@@ -9,6 +9,7 @@ import android.widget.Toast
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
+import com.google.firebase.firestore.SetOptions
 
 class MainActivity : AppCompatActivity() {
     private lateinit var editTextTitle: EditText
@@ -18,6 +19,7 @@ class MainActivity : AppCompatActivity() {
     private val docRef: DocumentReference = db.collection("Notebook").document("My first note")
 
     private lateinit var loadButton: Button
+    private lateinit var updateTitleButton: Button
     private lateinit var textViewData: TextView
 
     private val KEY_TITLE = "title"
@@ -33,6 +35,11 @@ class MainActivity : AppCompatActivity() {
 
         textViewData = findViewById(R.id.text_view_data)
         loadButton = findViewById(R.id.load_button)
+        updateTitleButton = findViewById(R.id.button_update_title)
+
+        updateTitleButton.setOnClickListener{
+            updateTitle()
+        }
 
         loadButton.setOnClickListener{
             loadData()
@@ -97,5 +104,13 @@ class MainActivity : AppCompatActivity() {
             }.addOnFailureListener {
                 Toast.makeText(this@MainActivity, "Failed to load the note data.", Toast.LENGTH_SHORT).show()
             }
+    }
+
+    private fun updateTitle() {
+        val title = editTextTitle.text.toString()
+        val note = mutableMapOf<String, Any>()
+        note[KEY_TITLE] = title
+
+        docRef.set(note, SetOptions.merge())
     }
 }

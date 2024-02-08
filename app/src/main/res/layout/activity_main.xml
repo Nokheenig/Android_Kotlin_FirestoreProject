@@ -28,6 +28,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/button_load"/>
+    
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/button_update_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/update_title_button"/>
 
     <TextView android:id="@+id/text_view_data"
         android:layout_width="wrap_content"
