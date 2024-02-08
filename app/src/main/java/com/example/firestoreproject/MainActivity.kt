@@ -6,6 +6,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import com.example.firestoreproject.classes.Note
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -71,10 +72,10 @@ class MainActivity : AppCompatActivity() {
             }
             document?.let {
                 if (it.exists()) {
-                    val title = it.getString((KEY_TITLE))
-                    val description = it.getString(KEY_DESCRIPTION)
 
-                    textViewData.text = "Title: $title\nDescription: $description"
+                    val note = it.toObject(Note::class.java)
+
+                    textViewData.text = "Title: ${note?.title}\nDescription: ${note?.description}"
                 } else {
                     textViewData.text = ""
                     Toast.makeText(this@MainActivity, "The document doesn't exist", Toast.LENGTH_SHORT).show()
@@ -87,10 +88,7 @@ class MainActivity : AppCompatActivity() {
         val title = editTextTitle.text.toString()
         val description = editTextDescription.text.toString()
 
-        val note = mutableMapOf<String, Any>()
-        note.put(KEY_TITLE, title)
-        note.put(KEY_DESCRIPTION, description)
-
+        val note  = Note(title, description)
         docRef.set(note)
             .addOnSuccessListener {
                 Toast.makeText(this@MainActivity, "Note saved!", Toast.LENGTH_SHORT).show()
