@@ -18,38 +18,28 @@
         android:layout_height="wrap_content"
         android:hint="@string/edit_text_hint_description"/>
 
-    <Button android:id="@+id/button_save"
+    <Button android:id="@+id/button_add"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/button_save_text"/>
+        android:text="@string/button_add_text"/>
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/load_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/button_load"/>
-    
-    <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/button_update_title"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/update_title_button"/>
-    
-    <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/button_delete_description"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/delete_description"/>
 
-    <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/button_delete_note"
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/delete_note"/>
+        android:layout_height="wrap_content">
 
-    <TextView android:id="@+id/text_view_data"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="25sp"/>
+        <TextView android:id="@+id/text_view_data"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="25sp"/>
+
+    </androidx.core.widget.NestedScrollView>
+
+
 
 </androidx.appcompat.widget.LinearLayoutCompat>

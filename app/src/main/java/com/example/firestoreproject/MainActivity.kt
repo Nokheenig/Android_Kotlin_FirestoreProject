@@ -7,23 +7,22 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import com.example.firestoreproject.classes.Note
+import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.SetOptions
+import com.google.firebase.firestore.toObject
 
 class MainActivity : AppCompatActivity() {
     private lateinit var editTextTitle: EditText
     private lateinit var editTextDescription: EditText
-    private lateinit var saveButton: Button
+    private lateinit var addButton: Button
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
     private val docRef: DocumentReference = db.collection("Notebook").document("My first note")
+    private val noteBookRef: CollectionReference = db.collection("Notebook")
 
     private lateinit var loadButton: Button
-    private lateinit var updateTitleButton: Button
-    private lateinit var deleteDescriptionButton: Button
-    private lateinit var deleteNoteButton: Button
     private lateinit var textViewData: TextView
 
     private val KEY_TITLE = "title"
@@ -35,61 +34,49 @@ class MainActivity : AppCompatActivity() {
 
         editTextTitle = findViewById(R.id.edit_text_title)
         editTextDescription = findViewById(R.id.edit_text_description)
-        saveButton = findViewById(R.id.button_save)
 
         textViewData = findViewById(R.id.text_view_data)
+        addButton = findViewById(R.id.button_add)
         loadButton = findViewById(R.id.load_button)
-        updateTitleButton = findViewById(R.id.button_update_title)
-        deleteDescriptionButton = findViewById(R.id.button_delete_description)
-        deleteNoteButton = findViewById(R.id.button_delete_note)
-
-        deleteDescriptionButton.setOnClickListener {
-            deleteDescription()
-        }
-        deleteNoteButton.setOnClickListener {
-            deleteNote()
-        }
-
-        updateTitleButton.setOnClickListener{
-            updateTitle()
-        }
 
         loadButton.setOnClickListener{
-            loadData()
+            loadNotes()
         }
 
-        saveButton.setOnClickListener {
-            save()
+        addButton.setOnClickListener {
+            addNote()
         }
     }
 
     override fun onStart() {
         super.onStart()
 
-        docRef.addSnapshotListener(this) { document, error ->
+        noteBookRef.addSnapshotListener { documentSnapshots, error ->
             error?.let {
                 return@addSnapshotListener
             }
-            document?.let {
-                if (it.exists()) {
+            documentSnapshots?.let {
+                var data = ""
 
-                    val note = it.toObject(Note::class.java)
+                for (documentSnapshot in it){
+                    val note = documentSnapshot.toObject(Note::class.java)
+                    note.id = documentSnapshot.id
+                    val title = note.title
+                    val description = note.description
 
-                    textViewData.text = "Title: ${note?.title}\nDescription: ${note?.description}"
-                } else {
-                    textViewData.text = ""
-                    Toast.makeText(this@MainActivity, "The document doesn't exist", Toast.LENGTH_SHORT).show()
+                    data+= "ID: ${note.id}\nTitle: $title\nDescription: $description\n\n"
                 }
+                textViewData.text = data
             }
         }
     }
 
-    private fun save() {
+    private fun addNote() {
         val title = editTextTitle.text.toString()
         val description = editTextDescription.text.toString()
 
         val note  = Note(title, description)
-        docRef.set(note)
+        noteBookRef.add(note)
             .addOnSuccessListener {
                 Toast.makeText(this@MainActivity, "Note saved!", Toast.LENGTH_SHORT).show()
             }.addOnFailureListener {
@@ -97,41 +84,19 @@ class MainActivity : AppCompatActivity() {
             }
     }
 
-    private fun loadData() {
-        docRef.get()
-            .addOnSuccessListener {document ->
-                if (document.exists()) {
-                    val title = document.getString((KEY_TITLE))
-                    val description = document.getString(KEY_DESCRIPTION)
+    private fun loadNotes() {
+        noteBookRef.get()
+            .addOnSuccessListener { queryDocumentSnapshots ->
+                var data = ""
 
-//                    val note = mutableMapOf<String, Any>()
-//                    note.put(KEY_TITLE, title!!)
-//                    note.put(KEY_DESCRIPTION, description!!)
+                for (documentSnapshot in queryDocumentSnapshots){
+                    val note = documentSnapshot.toObject(Note::class.java)
+                    val title = note.title
+                    val description = note.description
 
-                    textViewData.text = "Title: $title\nDescription: $description"
-                } else {
-                    Toast.makeText(this@MainActivity, "The document doesn't exist", Toast.LENGTH_SHORT).show()
+                    data+= "Title: $title\nDescription: $description\n\n"
                 }
-            }.addOnFailureListener {
-                Toast.makeText(this@MainActivity, "Failed to load the note data.", Toast.LENGTH_SHORT).show()
+                textViewData.text = data
             }
-    }
-
-    private fun updateTitle() {
-        val title = editTextTitle.text.toString()
-        val note = mutableMapOf<String, Any>()
-        note[KEY_TITLE] = title
-
-        docRef.set(note, SetOptions.merge())
-    }
-
-    private fun deleteDescription() {
-        val note = mutableMapOf<String, Any>()
-        note[KEY_DESCRIPTION] = FieldValue.delete() // Equivalent to: note.put(KEY_DESCRIPTION, FieldValue.delete())
-        docRef.update(note)
-    }
-
-    private fun deleteNote() {
-        docRef.delete()
     }
 }
