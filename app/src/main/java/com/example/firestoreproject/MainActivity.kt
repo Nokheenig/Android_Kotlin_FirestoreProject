@@ -59,41 +59,12 @@ class MainActivity : AppCompatActivity() {
         addButton.setOnClickListener {
             addNote()
         }
+
+        executeBatch()
     }
 
     override fun onStart() {
         super.onStart()
-        noteBookRef.orderBy("priority")
-            .addSnapshotListener(this) { snapshot, error ->
-                error?.let {
-                    Log.d("debugging", "Failed to attach SnapshotListener")
-                    return@addSnapshotListener
-                }
-
-                snapshot?.let {
-                    Log.d("debugging", "Some documents changed")
-                    for (dc in it.documentChanges){
-                        val id = dc.document.id
-                        val oldIndex = dc.oldIndex
-                        val newIndex = dc.newIndex
-
-                        when (dc.type) {
-                            DocumentChange.Type.ADDED -> {
-                                Log.d("debugging", "A document has been added")
-                                textViewData.append("\nAdded: $id\nOld Index: $oldIndex\nNew Index: $newIndex\n\n")
-                            }
-                            DocumentChange.Type.REMOVED -> {
-                                Log.d("debugging", "A document has been removed")
-                                textViewData.append("\nRemoved: $id\nOld Index: $oldIndex\nNew Index: $newIndex\n\n")
-                            }
-                            DocumentChange.Type.MODIFIED -> {
-                                Log.d("debugging", "A document has been modified")
-                                textViewData.append("\nModified: $id\nOld Index: $oldIndex\nNew Index: $newIndex\n\n")
-                            }
-                        }
-                    }
-                }
-            }
     }
 
     private fun addNote() {
@@ -149,5 +120,29 @@ class MainActivity : AppCompatActivity() {
                     Log.d("debugging", "Fetched an empty page")
                 }
             }
+    }
+
+    private fun executeBatch() {
+        val batch = db.batch()
+        val doc1 = noteBookRef.document("New note")
+        batch.set(doc1, Note("New note","New description",1))
+
+        val doc2 = noteBookRef.document("Not existing document")
+        //batch.update(doc2, "title", "Updated Note") -> Update on non-existing document fails and make the entire batch to be cancelled
+
+        // Now lets try to delete an existing doc in db. Lets try with: Ha78dPB4lEVxtmPIxTRf
+        val doc3 = noteBookRef.document("Ha78dPB4lEVxtmPIxTRf")
+        batch.delete(doc3)
+
+        // Now lets try to update an existing doc in db. Lets try with: 9gkaqbUm5nFHFJ6TyPQ2
+        val doc3bis = noteBookRef.document("9gkaqbUm5nFHFJ6TyPQ2")
+        batch.update(doc3bis, "title", "Who let the dogs out?")
+
+        val doc4 = noteBookRef.document() // No argument, it will generate a random id on doc creation
+        batch.set(doc4, Note("Added note", "Added description",1))
+
+        batch.commit().addOnFailureListener {
+            textViewData.text = it.toString()
+        }
     }
 }
