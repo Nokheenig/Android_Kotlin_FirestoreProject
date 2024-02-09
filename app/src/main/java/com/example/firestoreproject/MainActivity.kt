@@ -1,7 +1,10 @@
 package com.example.firestoreproject
 
+import android.content.ContentValues.TAG
+import android.nfc.Tag
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
@@ -96,7 +99,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadNotes() {
-        noteBookRef.get()
+        noteBookRef.whereGreaterThanOrEqualTo("priority", 2)
+            .whereEqualTo("title", "Aa")
+            .get()
             .addOnSuccessListener { queryDocumentSnapshots ->
                 var data = ""
 
@@ -109,6 +114,8 @@ class MainActivity : AppCompatActivity() {
                     data+= "Title: $title\nDescription: $description\nPriority: $priority\n\n"
                 }
                 textViewData.text = data
+            }.addOnFailureListener{
+                Log.d(TAG, it.toString())
             }
     }
 }
