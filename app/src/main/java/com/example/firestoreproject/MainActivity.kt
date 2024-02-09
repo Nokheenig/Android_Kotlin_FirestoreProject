@@ -1,7 +1,5 @@
 package com.example.firestoreproject
 
-import android.content.ContentValues.TAG
-import android.nfc.Tag
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -10,19 +8,10 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import com.example.firestoreproject.classes.Note
-import com.google.android.gms.tasks.Task
-import com.google.android.gms.tasks.Tasks
 import com.google.firebase.firestore.CollectionReference
-import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
-import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.QuerySnapshot
-import com.google.firebase.firestore.SetOptions
-import com.google.firebase.firestore.toObject
-import org.w3c.dom.DocumentType
 
 class MainActivity : AppCompatActivity() {
     private lateinit var editTextTitle: EditText
@@ -60,7 +49,7 @@ class MainActivity : AppCompatActivity() {
             addNote()
         }
 
-        executeBatch()
+        executeTransaction()
     }
 
     override fun onStart() {
@@ -122,27 +111,12 @@ class MainActivity : AppCompatActivity() {
             }
     }
 
-    private fun executeBatch() {
-        val batch = db.batch()
-        val doc1 = noteBookRef.document("New note")
-        batch.set(doc1, Note("New note","New description",1))
-
-        val doc2 = noteBookRef.document("Not existing document")
-        //batch.update(doc2, "title", "Updated Note") -> Update on non-existing document fails and make the entire batch to be cancelled
-
-        // Now lets try to delete an existing doc in db. Lets try with: Ha78dPB4lEVxtmPIxTRf
-        val doc3 = noteBookRef.document("Ha78dPB4lEVxtmPIxTRf")
-        batch.delete(doc3)
-
-        // Now lets try to update an existing doc in db. Lets try with: 9gkaqbUm5nFHFJ6TyPQ2
-        val doc3bis = noteBookRef.document("9gkaqbUm5nFHFJ6TyPQ2")
-        batch.update(doc3bis, "title", "Who let the dogs out?")
-
-        val doc4 = noteBookRef.document() // No argument, it will generate a random id on doc creation
-        batch.set(doc4, Note("Added note", "Added description",1))
-
-        batch.commit().addOnFailureListener {
-            textViewData.text = it.toString()
+    private fun executeTransaction() {
+        db.runTransaction {
+            val documentRef = noteBookRef.document("New note")
+            val snapshot = it.get(documentRef)
+            val newPriority = snapshot.getLong("priority")?.plus(1)
+            it.update(documentRef, "priority", newPriority)
         }
     }
 }
