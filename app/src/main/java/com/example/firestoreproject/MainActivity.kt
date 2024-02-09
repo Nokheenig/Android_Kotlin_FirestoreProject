@@ -14,6 +14,7 @@ import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
@@ -29,6 +30,7 @@ class MainActivity : AppCompatActivity() {
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
     private val docRef: DocumentReference = db.collection("Notebook").document("My first note")
     private val noteBookRef: CollectionReference = db.collection("Notebook")
+    private var lastResult: DocumentSnapshot? = null
 
     private lateinit var loadButton: Button
     private lateinit var textViewData: TextView
@@ -60,27 +62,6 @@ class MainActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
 
-        noteBookRef.whereGreaterThanOrEqualTo("priority",2)
-            .orderBy("priority", Query.Direction.DESCENDING)
-            .addSnapshotListener(this) { documentSnapshots, error ->
-            error?.let {
-                return@addSnapshotListener
-            }
-            documentSnapshots?.let {
-                var data = ""
-
-                for (documentSnapshot in it){
-                    val note = documentSnapshot.toObject(Note::class.java)
-                    note.id = documentSnapshot.id
-                    val title = note.title
-                    val description = note.description
-                    val priority = note.priority
-
-                    data+= "Title: $title\nDescription: $description\nPriority: $priority\n\n"
-                }
-                textViewData.text = data
-            }
-        }
     }
 
     private fun addNote() {
@@ -102,30 +83,39 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadNotes() {
-        val task1 = noteBookRef.whereLessThan("priority", 2)
-            .orderBy("priority")
-            .get()
-
-        val task2 = noteBookRef.whereGreaterThan("priority", 2)
-            .orderBy("priority")
-            .get()
-
-        val allTasks: Task<List<QuerySnapshot>> = Tasks.whenAllSuccess(task1,task2)
-        allTasks.addOnSuccessListener {
-            var data = ""
-            for (querySnapshot in it){
-                for (documentSnapshot in querySnapshot){
-                    val note = documentSnapshot.toObject(Note::class.java)
-                    note.id = documentSnapshot.id
+        val query = if (lastResult == null) {
+            Log.d("debugging", "Fetching the first page")
+            noteBookRef.orderBy("priority")
+                .limit(3)
+        } else {
+            Log.d("debugging", "Fetching the next page")
+            noteBookRef.orderBy("priority")
+                .startAfter(lastResult as DocumentSnapshot)
+                .limit(3)
+        }
+        query.get()
+            .addOnSuccessListener {
+                Log.d("debugging", "Successfully fetched some data")
+                var data = ""
+                for (queryDocument in it) {
+                    val note = queryDocument.toObject(Note::class.java)
+                    note.id = queryDocument.id
 
                     val title = note.title
                     val description = note.description
                     val priority = note.priority
+                    val id = note.id
 
-                    data+= "Title: $title\nDescription: $description\nPriority: $priority\n\n"
+                    data += "Id: $id\nTitle: $title\nDescription: $description\nPriority: $priority\n\n"
+                }
+                if (it.size() > 0) {
+                    Log.d("debugging", "Fetched a non empty page")
+                    data += "________________\n\n"
+                    textViewData.append(data)
+                    lastResult = it.documents[it.size() -1]
+                } else {
+                    Log.d("debugging", "Fetched an empty page")
                 }
             }
-            textViewData.text = data
-        }
     }
 }
