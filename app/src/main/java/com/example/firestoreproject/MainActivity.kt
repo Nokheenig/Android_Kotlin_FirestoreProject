@@ -13,6 +13,7 @@ import com.example.firestoreproject.classes.Note
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.firestore.CollectionReference
+import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
@@ -21,6 +22,7 @@ import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.toObject
+import org.w3c.dom.DocumentType
 
 class MainActivity : AppCompatActivity() {
     private lateinit var editTextTitle: EditText
@@ -61,7 +63,37 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
+        noteBookRef.orderBy("priority")
+            .addSnapshotListener(this) { snapshot, error ->
+                error?.let {
+                    Log.d("debugging", "Failed to attach SnapshotListener")
+                    return@addSnapshotListener
+                }
 
+                snapshot?.let {
+                    Log.d("debugging", "Some documents changed")
+                    for (dc in it.documentChanges){
+                        val id = dc.document.id
+                        val oldIndex = dc.oldIndex
+                        val newIndex = dc.newIndex
+
+                        when (dc.type) {
+                            DocumentChange.Type.ADDED -> {
+                                Log.d("debugging", "A document has been added")
+                                textViewData.append("\nAdded: $id\nOld Index: $oldIndex\nNew Index: $newIndex\n\n")
+                            }
+                            DocumentChange.Type.REMOVED -> {
+                                Log.d("debugging", "A document has been removed")
+                                textViewData.append("\nRemoved: $id\nOld Index: $oldIndex\nNew Index: $newIndex\n\n")
+                            }
+                            DocumentChange.Type.MODIFIED -> {
+                                Log.d("debugging", "A document has been modified")
+                                textViewData.append("\nModified: $id\nOld Index: $oldIndex\nNew Index: $newIndex\n\n")
+                            }
+                        }
+                    }
+                }
+            }
     }
 
     private fun addNote() {
