@@ -11,12 +11,14 @@ import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.toObject
 
 class MainActivity : AppCompatActivity() {
     private lateinit var editTextTitle: EditText
     private lateinit var editTextDescription: EditText
+    private lateinit var editTextPriority: EditText
     private lateinit var addButton: Button
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
     private val docRef: DocumentReference = db.collection("Notebook").document("My first note")
@@ -34,6 +36,7 @@ class MainActivity : AppCompatActivity() {
 
         editTextTitle = findViewById(R.id.edit_text_title)
         editTextDescription = findViewById(R.id.edit_text_description)
+        editTextPriority = findViewById(R.id.edit_text_priority)
 
         textViewData = findViewById(R.id.text_view_data)
         addButton = findViewById(R.id.button_add)
@@ -51,7 +54,9 @@ class MainActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
 
-        noteBookRef.addSnapshotListener { documentSnapshots, error ->
+        noteBookRef.whereGreaterThanOrEqualTo("priority",2)
+            .orderBy("priority", Query.Direction.DESCENDING)
+            .addSnapshotListener(this) { documentSnapshots, error ->
             error?.let {
                 return@addSnapshotListener
             }
@@ -63,8 +68,9 @@ class MainActivity : AppCompatActivity() {
                     note.id = documentSnapshot.id
                     val title = note.title
                     val description = note.description
+                    val priority = note.priority
 
-                    data+= "ID: ${note.id}\nTitle: $title\nDescription: $description\n\n"
+                    data+= "Title: $title\nDescription: $description\nPriority: $priority\n\n"
                 }
                 textViewData.text = data
             }
@@ -75,7 +81,12 @@ class MainActivity : AppCompatActivity() {
         val title = editTextTitle.text.toString()
         val description = editTextDescription.text.toString()
 
-        val note  = Note(title, description)
+        if (editTextPriority.text.toString().isEmpty()) {
+            editTextPriority.setText("0")
+        }
+        val priority = editTextPriority.text.toString().toInt()
+
+        val note  = Note(title, description, priority)
         noteBookRef.add(note)
             .addOnSuccessListener {
                 Toast.makeText(this@MainActivity, "Note saved!", Toast.LENGTH_SHORT).show()
@@ -93,8 +104,9 @@ class MainActivity : AppCompatActivity() {
                     val note = documentSnapshot.toObject(Note::class.java)
                     val title = note.title
                     val description = note.description
+                    val priority = note.priority
 
-                    data+= "Title: $title\nDescription: $description\n\n"
+                    data+= "Title: $title\nDescription: $description\nPriority: $priority\n\n"
                 }
                 textViewData.text = data
             }
