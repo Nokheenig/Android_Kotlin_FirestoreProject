@@ -10,11 +10,14 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import com.example.firestoreproject.classes.Note
+import com.google.android.gms.tasks.Task
+import com.google.android.gms.tasks.Tasks
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.toObject
 
@@ -99,23 +102,30 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadNotes() {
-        noteBookRef.whereGreaterThanOrEqualTo("priority", 2)
-            .whereEqualTo("title", "Aa")
+        val task1 = noteBookRef.whereLessThan("priority", 2)
+            .orderBy("priority")
             .get()
-            .addOnSuccessListener { queryDocumentSnapshots ->
-                var data = ""
 
-                for (documentSnapshot in queryDocumentSnapshots){
+        val task2 = noteBookRef.whereGreaterThan("priority", 2)
+            .orderBy("priority")
+            .get()
+
+        val allTasks: Task<List<QuerySnapshot>> = Tasks.whenAllSuccess(task1,task2)
+        allTasks.addOnSuccessListener {
+            var data = ""
+            for (querySnapshot in it){
+                for (documentSnapshot in querySnapshot){
                     val note = documentSnapshot.toObject(Note::class.java)
+                    note.id = documentSnapshot.id
+
                     val title = note.title
                     val description = note.description
                     val priority = note.priority
 
                     data+= "Title: $title\nDescription: $description\nPriority: $priority\n\n"
                 }
-                textViewData.text = data
-            }.addOnFailureListener{
-                Log.d(TAG, it.toString())
             }
+            textViewData.text = data
+        }
     }
 }
