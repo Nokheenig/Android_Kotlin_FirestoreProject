@@ -79,7 +79,8 @@ class MainActivity : AppCompatActivity() {
         val priority = editTextPriority.text.toString().toInt()
 
         val note  = Note(title, description, priority, tags)
-        noteBookRef.add(note)
+        noteBookRef.document("3kon1hXzPJrn5LV3UfyF").collection("Note SubCollection")
+            .add(note)
             .addOnSuccessListener {
                 Toast.makeText(this@MainActivity, "Note saved!", Toast.LENGTH_SHORT).show()
             }.addOnFailureListener {
@@ -89,7 +90,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadNotes() {
         noteBookRef
-            .whereEqualTo("tags.tag1", true)
+            .document("3kon1hXzPJrn5LV3UfyF")
+            .collection("Note SubCollection")
             .get()
             .addOnSuccessListener {
                 var data = ""
