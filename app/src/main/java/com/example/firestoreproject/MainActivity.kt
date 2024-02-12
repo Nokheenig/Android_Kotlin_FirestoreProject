@@ -51,7 +51,7 @@ class MainActivity : AppCompatActivity() {
             addNote()
         }
 
-        updateArray()
+        updateObjects()
     }
 
     override fun onStart() {
@@ -67,7 +67,14 @@ class MainActivity : AppCompatActivity() {
         }
 
         val tagsArray = editTextTags.text.toString().trim().split(",")
-        val tags = if (tagsArray.size == 1 && tagsArray[0] == "") null else tagsArray.toMutableList()
+        val tags = if (tagsArray.size == 1 && tagsArray[0] == "") null else mutableMapOf<String, Boolean>()
+
+        tags?.let {
+            for (tag in tagsArray) {
+                tags[tag] = true
+            }
+        }
+
 
         val priority = editTextPriority.text.toString().toInt()
 
@@ -82,7 +89,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadNotes() {
         noteBookRef
-            .whereArrayContains("tags", "Fantasio")
+            .whereEqualTo("tags.tag1", true)
             .get()
             .addOnSuccessListener {
                 var data = ""
@@ -92,7 +99,7 @@ class MainActivity : AppCompatActivity() {
 
                     data += "\n\nID: ${note.id}\n"
                     note.tags?.let {
-                        for (tag in note.tags) {
+                        for (tag in note.tags.keys) {
                             data += "- $tag\n"
                         }
                     }
@@ -104,8 +111,12 @@ class MainActivity : AppCompatActivity() {
             }
     }
 
-    private fun updateArray() {
-        //noteBookRef.document("XdERfuHXMVjB4AX7F1S3").update("tags", FieldValue.arrayUnion("new tag"))
-        noteBookRef.document("XdERfuHXMVjB4AX7F1S3").update("tags", FieldValue.arrayRemove("new tag"))
+    private fun updateObjects() {
+        noteBookRef.document("iWmyFGWMbGJgWOs2t8Zi")
+            .update("tags.tag1", true)
+        noteBookRef.document("iWmyFGWMbGJgWOs2t8Zi")
+            .update("tags.tag2", true)
+        noteBookRef.document("iWmyFGWMbGJgWOs2t8Zi")
+            .update("tags.tag3", FieldValue.delete())
     }
 }
