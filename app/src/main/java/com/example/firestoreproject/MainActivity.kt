@@ -6,7 +6,9 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import androidx.databinding.DataBindingUtil
 import com.example.firestoreproject.classes.Note
+import com.example.firestoreproject.databinding.ActivityMainBinding
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
@@ -14,59 +16,41 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var editTextTitle: EditText
-    private lateinit var editTextDescription: EditText
-    private lateinit var editTextPriority: EditText
-    private lateinit var editTextTags: EditText
-    private lateinit var addButton: Button
+
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
     private val docRef: DocumentReference = db.collection("Notebook").document("My first note")
     private val noteBookRef: CollectionReference = db.collection("Notebook")
     private var lastResult: DocumentSnapshot? = null
 
-    private lateinit var loadButton: Button
-    private lateinit var textViewData: TextView
+
 
     private val KEY_TITLE = "title"
     private val KEY_DESCRIPTION = "description"
-
+    private lateinit var mBinding: ActivityMainBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        mBinding = DataBindingUtil.setContentView(this,R.layout.activity_main)
 
-        editTextTitle = findViewById(R.id.edit_text_title)
-        editTextDescription = findViewById(R.id.edit_text_description)
-        editTextPriority = findViewById(R.id.edit_text_priority)
-        editTextTags = findViewById(R.id.edit_text_tags)
-
-        textViewData = findViewById(R.id.text_view_data)
-        addButton = findViewById(R.id.button_add)
-        loadButton = findViewById(R.id.load_button)
-
-        loadButton.setOnClickListener{
+        mBinding.loadButton.setOnClickListener{
             loadNotes()
         }
 
-        addButton.setOnClickListener {
+        mBinding.buttonAdd.setOnClickListener {
             addNote()
         }
 
         updateObjects()
     }
 
-    override fun onStart() {
-        super.onStart()
-    }
-
     private fun addNote() {
-        val title = editTextTitle.text.toString()
-        val description = editTextDescription.text.toString()
+        val title = mBinding.editTextTitle.text.toString()
+        val description = mBinding.editTextDescription.text.toString()
 
-        if (editTextPriority.text.toString().isEmpty()) {
-            editTextPriority.setText("0")
+        if (mBinding.editTextPriority.text.toString().isEmpty()) {
+            mBinding.editTextPriority.setText("0")
         }
 
-        val tagsArray = editTextTags.text.toString().trim().split(",")
+        val tagsArray = mBinding.editTextTags.text.toString().trim().split(",")
         val tags = if (tagsArray.size == 1 && tagsArray[0] == "") null else mutableMapOf<String, Boolean>()
 
         tags?.let {
@@ -76,7 +60,7 @@ class MainActivity : AppCompatActivity() {
         }
 
 
-        val priority = editTextPriority.text.toString().toInt()
+        val priority = mBinding.editTextPriority.text.toString().toInt()
 
         val note  = Note(title, description, priority, tags)
         noteBookRef.document("3kon1hXzPJrn5LV3UfyF").collection("Note SubCollection")
@@ -107,7 +91,7 @@ class MainActivity : AppCompatActivity() {
                     }
 
                 }
-                textViewData.text = data
+                mBinding.textViewData.text = data
             }.addOnFailureListener {
                 Toast.makeText(this@MainActivity, it.toString(), Toast.LENGTH_SHORT).show()
             }
