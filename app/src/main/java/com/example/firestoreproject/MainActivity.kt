@@ -83,7 +83,10 @@ class MainActivity : AppCompatActivity() {
                     val note = documentSnapshot.toObject(Note::class.java)
                     note.id = documentSnapshot.id
 
-                    data += "\n\nID: ${note.id}\n"
+                    data += "\n\nNote database Id: ${note.id}\n"
+                    data += "Title: ${note.title}\n"
+                    data += "Priority: ${note.priority}\n"
+                    data += "Description: ${note.description}\n"
                     note.tags?.let {
                         for (tag in note.tags.keys) {
                             data += "- $tag\n"
